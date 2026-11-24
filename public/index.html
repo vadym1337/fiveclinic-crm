@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5b7c99">
+<title>Five Clinic</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#fff;--border:#ebe4dc;--text:#2c2825;--muted:#8a8078;--accent:#5b7c99;--accent-soft:#eef3f7;--radius:16px;--call:#5b7c99;--mail:#6b9e78}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text)}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#faf8f5,#eef3f7)}
+.box{background:#fff;padding:36px 28px;border-radius:20px;width:100%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+.box h1{font-size:22px;margin:12px 0 6px}
+.box p{color:var(--muted);font-size:14px;margin-bottom:20px}
+input,textarea,select{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;font-size:14px;outline:none;background:#fff;font-family:inherit}
+input:focus,textarea:focus{border-color:var(--accent)}
+button,.btn{background:var(--accent);color:#fff;border:none;padding:12px 16px;border-radius:12px;font-weight:600;cursor:pointer}
+.btn-sec{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-call{background:var(--call)}
+.btn-mail{background:var(--mail)}
+.error{color:#c45c5c;font-size:13px;margin-top:10px;min-height:18px}
+.app{display:none}
+.app.show{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;flex-shrink:0}
+.nav-item{padding:10px 12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:4px}
+.nav-item.active,.nav-item:hover{background:var(--accent-soft);color:var(--accent)}
+.main{flex:1;padding:24px;overflow-y:auto}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header h1{font-size:24px;font-weight:600}
+.section{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.name{font-weight:600;font-size:16px}
+.meta{font-size:13px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:8px;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:28px;box-shadow:0 4px 12px rgba(91,124,153,.4);z-index:90}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:200}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.empty{text-align:center;color:var(--muted);padding:40px 20px}
+.log-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+@media(max-width:800px){
+  .sidebar{display:none}
+  .app.show{flex-direction:column}
+  .main{padding:16px}
+  .modal{align-items:flex-end}
+  .modal-box{border-radius:20px 20px 0 0;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="box">
+    <div style="width:48px;height:48px;background:#5b7c99;color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:600;font-size:20px">5</div>
+    <h1>Five Clinic</h1>
+    <p>CRM</p>
+    <input type="password" id="pw" placeholder="Heslo" autofocus>
+    <button id="btn">Odemknout</button>
+    <div class="error" id="err"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding:0 6px">
+      <div style="width:36px;height:36px;background:#5b7c99;color:white;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600">5</div>
+      <div><strong>Five Clinic</strong></div>
+    </div>
+    <div class="nav-item active" data-v="todo">K vyřízení</div>
+    <div class="nav-item" data-v="clients">Klientky</div>
+    <div class="nav-item" data-v="log">Log</div>
+    <div style="margin-top:auto"><button class="btn-sec" style="width:100%" onclick="logout()">Odhlásit</button></div>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <h1 id="title">K vyřízení</h1>
+      <button class="btn-sec" style="width:auto;padding:8px 12px;font-size:13px" onclick="enablePush()">Notifikace</button>
+    </div>
+    <div id="content"></div>
+  </main>
+  <button class="fab" onclick="openAdd()">+</button>
+</div>
+
+<div class="modal" id="modal"><div class="modal-box" id="modal-content"></div></div>
+
+<script>
+const PASS = 'nctf1337';
+let data = JSON.parse(localStorage.getItem('fc_crm_v3') || 'null') || {
+  items: [
+    { id: 1, type: 'call', name: 'Jana Nováková', phone: '+420777123456', note: 'Kontrola po lipolýze', due: new Date().toISOString().slice(0,10), status: 'pending' },
+    { id: 2, type: 'call', name: 'Petra Svobodová', phone: '+420608987654', note: 'Potvrdit termín', due: new Date().toISOString().slice(0,10), status: 'pending' },
+    { id: 3, type: 'mail', name: 'Ivana Dvořáková', email: 'ivana@email.cz', note: 'Dotaz na botox', draft: 'Dobrý den, Ivanko,\n\nděkujeme za zprávu. Rádi vám s botoxem poradíme.\n\nS pozdravem\ntým Five Clinic', due: new Date().toISOString().slice(0,10), status: 'pending' }
+  ],
+  log: []
+};
+let view = 'todo';
+
+function save(){ localStorage.setItem('fc_crm_v3', JSON.stringify(data)); }
+function unlock() {
+  if (document.getElementById('pw').value === PASS) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    render();
+  } else document.getElementById('err').textContent = 'Špatné heslo';
+}
+function logout() {
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pw').value = '';
+}
+document.getElementById('btn').onclick = unlock;
+document.getElementById('pw').onkeydown = e => { if (e.key === 'Enter') unlock(); };
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+
+async function enablePush() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return;
+  const reg = await navigator.serviceWorker.ready;
+  const keyRes = await fetch('/vapid-public');
+  const { publicKey } = await keyRes.json();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicKey)
+  });
+  await fetch('/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sub) });
+  alert('Notifikace povoleny');
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+function render() {
+  const t = document.getElementById('title');
+  const c = document.getElementById('content');
+  const today = new Date().toISOString().slice(0,10);
+  if (view === 'todo') {
+    t.textContent = 'K vyřízení';
+    const pending = data.items.filter(i => i.status === 'pending' && i.due <= today);
+    const calls = pending.filter(i => i.type === 'call');
+    const mails = pending.filter(i => i.type === 'mail');
+    let html = '';
+    if (calls.length) {
+      html += `<div class="section">Zavolat</div><div class="grid">`;
+      html += calls.map(i => `
+        <div class="card">
+          <div class="name">${i.name}</div>
+          <div class="meta">${i.note}</div>
+          <div class="actions">
+            <a href="tel:${i.phone}" class="btn btn-call" style="text-align:center;text-decoration:none;flex:1">Zavolat</a>
+            <button class="btn-sec" style="flex:1" onclick="done(${i.id})">Hotovo</button>
+          </div>
+        </div>`).join('');
+      html += `</div>`;
+    }
+    if (mails.length) {
+      html += `<div class="section">Odepsat</div><div class="grid">`;
+      html += mails.map(i => `
+        <div class="card">
+          <div class="name">${i.name}</div>
+          <div class="meta">${i.note}</div>
+          <div class="actions">
+            <button class="btn btn-mail" style="flex:1" onclick="openMail(${i.id})">Návrh</button>
+            <button class="btn-sec" style="flex:1" onclick="done(${i.id})">Hotovo</button>
+          </div>
+        </div>`).join('');
+      html += `</div>`;
+    }
+    if (!pending.length) html = '<div class="empty">Vše vyřízeno</div>';
+    c.innerHTML = html;
+  } else if (view === 'clients') {
+    t.textContent = 'Klientky';
+    const names = [...new Set(data.items.map(i => i.name))];
+    c.innerHTML = `<div class="grid">${names.map(n => {
+      const items = data.items.filter(i => i.name === n);
+      return `<div class="card"><div class="name">${n}</div><div class="meta">${items.length} položek</div></div>`;
+    }).join('')}</div>`;
+  } else if (view === 'log') {
+    t.textContent = 'Log';
+    c.innerHTML = data.log.length ? data.log.slice().reverse().map(l => `
+      <div class="log-item"><strong>${l.name}</strong> · ${l.action}<br><span style="color:var(--muted);font-size:12px">${l.when}</span></div>
+    `).join('') : '<div class="empty">Zatím prázdný</div>';
+  }
+}
+
+function done(id) {
+  const i = data.items.find(x => x.id === id);
+  if (i) {
+    i.status = 'done';
+    data.log.push({ name: i.name, action: i.type === 'call' ? 'Zavoláno' : 'Odepsáno', when: new Date().toLocaleString('cs') });
+    save(); render();
+  }
+}
+function openMail(id) {
+  const i = data.items.find(x => x.id === id);
+  document.getElementById('modal-content').innerHTML = `
+    <h2 style="margin-bottom:8px">${i.name}</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">${i.email||''}</p>
+    <textarea id="draft" rows="8" style="margin-bottom:12px">${i.draft||''}</textarea>
+    <button class="btn btn-mail" onclick="sendMail(${id})">Odeslat</button>
+    <button class="btn-sec" style="margin-top:8px;width:100%" onclick="closeModal()">Zavřít</button>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+function sendMail(id) { done(id); closeModal(); }
+function openAdd() {
+  document.getElementById('modal-content').innerHTML = `
+    <h2 style="margin-bottom:16px">Přidat</h2>
+    <select id="a-type" style="margin-bottom:10px">
+      <option value="call">Zavolat</option>
+      <option value="mail">Napsat email</option>
+    </select>
+    <input id="a-name" placeholder="Jméno a příjmení" style="margin-bottom:10px">
+    <input id="a-contact" placeholder="Telefon nebo email" style="margin-bottom:10px">
+    <input id="a-note" placeholder="Poznámka" style="margin-bottom:10px">
+    <input type="date" id="a-date" style="margin-bottom:16px" value="${new Date().toISOString().slice(0,10)}">
+    <button class="btn" onclick="saveAdd()">Uložit</button>
+    <button class="btn-sec" style="margin-top:8px;width:100%" onclick="closeModal()">Zrušit</button>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+function saveAdd() {
+  const type = document.getElementById('a-type').value;
+  const name = document.getElementById('a-name').value.trim();
+  if (!name) return alert('Vyplň jméno');
+  const item = { id: Date.now(), type, name, note: document.getElementById('a-note').value, due: document.getElementById('a-date').value, status: 'pending' };
+  if (type === 'call') item.phone = document.getElementById('a-contact').value;
+  else item.email = document.getElementById('a-contact').value;
+  data.items.push(item);
+  save(); closeModal(); render();
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    view = el.dataset.v;
+    render();
+  };
+});
+</script>
+</body>
+</html>

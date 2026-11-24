@@ -1,0 +1,12 @@
+{
+  "name": "fiveclinic-crm",
+  "version": "0.1.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "web-push": "^3.6.6"
+  }
+}
